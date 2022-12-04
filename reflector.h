@@ -7,6 +7,5 @@ class Reflector{
 
     // 白黒判定の境界値
     // これより大きければ白だった気がする
-
     const double bordar_value = 0.5f;
 };
