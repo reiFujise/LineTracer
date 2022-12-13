@@ -4,7 +4,7 @@ class Reflector{
   public:
 		float value;
     // 初期値はfalse
-    bool is_black = false;
+    bool is_black;
 
     // 白黒判定の境界値
     double boundary_value = 0.85f;

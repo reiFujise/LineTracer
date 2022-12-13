@@ -5,16 +5,23 @@
 #include "interupter.h"
 
   // インスタンス化
-  Motar     r_motar;
-  Motar     l_motar;
-	Reflector r_ref;
-	Reflector l_ref;
-  Counter   r_counter(D9);
+  DigitalOut m1_phase(D0);
+  PwmOut     m1_enable(D6);
+  DigitalOut m2_phase(D1);
+  PwmOut     m2_enable(D5);
+  AnalogIn   ref1_value(A1); 
+  AnalogIn   ref2_value(A2); 
+  Counter    r_counter(D9);
   // interupter のポート接続が完了したらコメントイン
   // Counter l_counter(D10);
+  Motar      r_motar;
+  Motar      l_motar;
+	Reflector  r_ref;
+	Reflector  l_ref;
+  
 
 // 目標の回転数に近づける処理
-float PID(int target_value){
+void PID(){
 
 }
 
@@ -36,8 +43,13 @@ void adjust_speed(Motar r_motar, Motar l_motar){
 
 int main(){
   // モータの回転の向き: 1が正転 0が反転
-  m1_phase = 1;
-  m2_phase = 1;
+  m1_phase      = 1;
+  m2_phase      = 1;
+  // 初期化
+  m1.period     = 1.0f;
+  m2.period     = 1.0f;
+  m1.duty_ratio = 0.5f;
+  m2.duty_ratio = 0.5f;
 
   // pwd の周期決定 走行中に変動させたいのでwhile文の中に入れる
   m1_enable.period(r_motar.period);
@@ -74,9 +86,8 @@ int main(){
       PID();
     }
 
-    ////////////////////  特定の距離を走行したら実行する処理
-
     // 回転数の計測の処理
 
+    ////////////////////  特定の距離を走行したら実行する処理
   }
 }
