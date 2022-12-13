@@ -2,40 +2,81 @@
 #include "initializer.h"
 #include "motar.h"
 #include "reflector.h"
+#include "interupter.h"
 
-int check_speed(Motar m){
-  if(m.speed > m.min_speed && m.speed < m.max_speed){
-    return m.speed;
-  }else if(m.speed < m.min_speed){
-    return m.min_speed;
-  }else if(m.speed > m.max_speed){
-    return m.max_speed;
-  }else{
-    return m.speed;
-  }
+  // インスタンス化
+  Motar     r_motar;
+  Motar     l_motar;
+	Reflector r_ref;
+	Reflector l_ref;
+  Counter   r_counter(D9);
+  // interupter のポート接続が完了したらコメントイン
+  // Counter l_counter(D10);
+
+// 目標の回転数に近づける処理
+float PID(int target_value){
+
+}
+
+// p_motar 側に車体を傾ける
+void rotate(Motar p_motar, Motar s_motar, float change_rate){
+  p_motar.decrease_duty(change_rate);
+  s_motar.increase_duty(change_rate);
+  m1_enable.write(p_motar.duty_ratio);
+  m2_enable.write(s_motar.duty_ratio);
+}
+
+void adjust_speed(Motar r_motar, Motar l_motar){
+  float aver_rate = (r_motar.duty_ratio + l_motar.duty_ratio) / 2;
+  r_motar.duty_ratio = aver_rate;
+  l_motar.duty_ratio = aver_rate;
+  m1_enable.write(r_motar.duty_ratio);
+  m2_enable.write(l_motar.duty_ratio);
 }
 
 int main(){
-
-  float duty[] = { 0.0f, 1.0f };
-
-  // インスタンス化
-  Motar m1;
-  Motar m2;
-	Reflector ref1;
-	Reflector ref2;
-
+  // モータの回転の向き: 1が正転 0が反転
   m1_phase = 1;
   m2_phase = 1;
 
-  m1_enable.period(m1.period);
-  m2_enable.period(m2.period);
+  // pwd の周期決定 走行中に変動させたいのでwhile文の中に入れる
+  m1_enable.period(r_motar.period);
+  m2_enable.period(l_motar.period);
 
- // 十分な回転数が確保できるよう初期トルクを大きくする
- // トルクが大きすぎたためコメントアウト
-
-  
   while(1){
+    // 色判定
+    r_ref.assign_color(ref1_value);
+    l_ref.assign_color(ref2_value);
+    // 色の判定をチェックする
+    printf("--- Check Color --- Right Senser => %d --- Left Senser => %d ---\n", r_ref.is_black, l_ref.is_black);
+
+    /////////////////////  duty比とperiodの決定をする処理
+    if(r_ref.is_black == true && l_ref.is_black == true){
+      PID();
+    }else if(r_ref.is_black == true && l_ref.is_black == false){
+      float change_rate = 0.01f;
+      while(l_motar.is_black == false){
+        // 指数関数的に増加させる
+        change_rate += change_rate;
+        rotate(r_motar, l_motar, change_rate);
+        l_ref.assign_color(ref2_value);
+      }
+      adjust_speed(r_motar, l_motar);
+    }else if(r_ref.is_black == false && l_ref.is_black == true){
+      float change_rate = 0.01f;
+      while(r_motar.is_black == false){
+        change_rate += change_rate;
+        rotate(l_motar, r_motar, change_rate);
+        r_ref.assign_color(ref1_value);
+      }
+      adjust_speed(r_motar, l_motar);
+    }else{
+      PID();
+    }
+
+    ////////////////////  特定の距離を走行したら実行する処理
+
+    // 回転数の計測の処理
+
   }
 }
-
