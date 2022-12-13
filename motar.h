@@ -6,18 +6,18 @@ class Motar{
     float period;
     float duty_ratio;
 
-    void increase_duty(int num);
-    void decrease_duty(int num);
+    void increase_duty(float rate);
+    void decrease_duty(float rate);
   
   private:
 };
 
 void Motar::increase_duty(float increase_rate){
   this->duty_ratio += increase_rate;
-  if (this->duty_ratio > 1.0f) this->duty_ratio = 1.0f;
+  if (this->duty_ratio > 0.7f) this->duty_ratio = 0.7f;
 }
 
-void Motar::decrease_duty(int decrease_rate){
+void Motar::decrease_duty(float decrease_rate){
   this->duty_ratio -= decrease_rate;
-  if (this->duty_ratio < 0) this->duty_ratio = 0.0f;
+  if (this->duty_ratio < 0.3f) this->duty_ratio = 0.3f;
 }
