@@ -7,12 +7,12 @@ class Reflector{
     bool is_black;
 
     // 白黒判定の境界値
-    double boundary_value = 0.85f;
+    double boundary_value = 0.75f;
 
 		void assign_color(AnalogIn ref_value);
 };
 
-void Reflector::assign_color(AnalogIn ref_value){
+inline void Reflector::assign_color(AnalogIn ref_value){
 	if(ref_value.read() > this->boundary_value){
 		this->is_black = true;
 	}else{

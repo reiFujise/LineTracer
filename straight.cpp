@@ -1,98 +1,104 @@
 #include <mbed.h>
-#include "initializer.h"
 #include "motar.h"
 #include "reflector.h"
+#include "interupter.h"
 
-int check_speed(Motar m){
-  if(m.speed > m.min_speed && m.speed < m.max_speed){
-    return m.speed;
-  }else if(m.speed < m.min_speed){
-    return m.min_speed;
-  }else if(m.speed > m.max_speed){
-    return m.max_speed;
-  }else{
-    return m.speed;
-  }
+  // インスタンス化
+  DigitalOut r_motar_phase(D0);
+  PwmOut     r_motar_enable(D1);
+  DigitalOut l_motar_phase(D6);
+  PwmOut     l_motar_enable(D5);
+  AnalogIn   ref1_value(A1); 
+  AnalogIn   ref2_value(A2); 
+  Counter    r_counter(D9);
+  // interupter のポート接続が完了したらコメントイン
+  // Counter l_counter(D10);
+  Motar      r_motar;
+  Motar      l_motar;
+	Reflector  r_ref;
+	Reflector  l_ref;
+  
+
+// 目標の回転数に近づける処理
+void PID(Motar r_motar, Motar l_motar){
+  r_motar.duty_ratio = 0.5f;
+  l_motar.duty_ratio = 0.5f;
+  r_motar_enable.write(r_motar.duty_ratio);
+  l_motar_enable.write(l_motar.duty_ratio);
+}
+
+// p_motar 側に車体を傾ける
+void rotate(Motar p_motar, Motar s_motar, float change_rate){
+  p_motar.decrease_duty(change_rate);
+  s_motar.increase_duty(change_rate);
+  r_motar_enable.write(p_motar.duty_ratio);
+  l_motar_enable.write(s_motar.duty_ratio);
+}
+
+void adjust_speed(Motar r_motar, Motar l_motar){
+  float aver_rate = (r_motar.duty_ratio + l_motar.duty_ratio) / 2;
+  r_motar.duty_ratio = aver_rate;
+  l_motar.duty_ratio = aver_rate;
+  r_motar_enable.write(r_motar.duty_ratio);
+  l_motar_enable.write(l_motar.duty_ratio);
 }
 
 int main(){
+  // モータの回転の向き: 1が正転 0が反転
+  r_motar_phase      = 1;
+  l_motar_phase      = 1;
+  // 初期化
+  r_motar.period     = 10.0f;
+  l_motar.period     = 10.0f;
+  r_motar.duty_ratio = 0.5f;
+  l_motar.duty_ratio = 0.8f;
 
-  float duty[] = { 0.1f, 0.9f };
+  // pwd の周期決定 走行中に変動させたいのでwhile文の中に入れる
+  r_motar_enable.period(r_motar.period);
+  l_motar_enable.period(l_motar.period);
 
-  // インスタンス化
-  Motar m1;
-  Motar m2;
-	Reflector ref1;
-	Reflector ref2;
-
-  m1_phase = 1;
-  m2_phase = 1;
-
-  m1_enable.period(m1.period);
-  m2_enable.period(m2.period);
-
- // 十分な回転数が確保できるよう初期トルクを大きくする
- // トルクが大きすぎたためコメントアウト
-
-    printf("--- Start while loop ---\n\n");
-  // 左のセンサしか使い物にならないので、左が黒に入ったらみぎへ、
-  // 左のセンサが白に入ったら左へ傾ける処理にすれば真っ直ぐ行くんじゃね？？？
-
-  bool right_flag = true;
-  
   while(1){
-      m1_enable.write(duty[1]);
-      m2_enable.write(duty[1]);
+    r_motar_enable.write(r_motar.duty_ratio);
+    // l_motar_enable.write(l_motar.duty_ratio);
+    // // 色判定
+    // r_ref.assign_color(ref1_value);
+    // l_ref.assign_color(ref2_value);
+    // // 色の判定をチェックする
+    // printf("--- Check Color --- Right Senser => %d --- Left Senser => %d ---\n", r_ref.is_black, l_ref.is_black);
+    // printf("value ----- Ritght => %f --- Left => %f --- \n", ref1_value.read(), ref2_value.read());
 
-    // // ref1 はバグっているため使用しない.てか使用できない！
+    // /////////////////////  duty比とperiodの決定をする処理
+    // if(r_ref.is_black == true && l_ref.is_black == true){
+    //   PID(r_motar, l_motar);
+    // }else if(r_ref.is_black == true && l_ref.is_black == false){
+    //   float change_rate = 0.01f;
+    //   while(l_ref.is_black == false){
+    //     // 指数関数的に増加させる
+    //     change_rate += change_rate;
+    //     rotate(r_motar, l_motar, change_rate);
+    //     l_ref.assign_color(ref2_value);
+    //     printf("--- Check Color --- Right Senser => %d --- Left Senser => %d ---\n", r_ref.is_black, l_ref.is_black);
+    //     printf("value ----- Ritght => %f --- Left => %f --- \n", ref1_value.read(), ref2_value.read());
 
-
-  //   while( right_flag == 0){
-
-    //   m2.speed_up(1);
-    //   m1.speed_down(1);
-    //   m1.speed = check_speed(m1);
-    //   m2.speed = check_speed(m2);
-
-    //   m1_enable.write(duty[m1.speed]);
-    //   m2_enable.write(duty[m2.speed]);
-
-    //   ref2.value = ref2_value.read();
-    //   ref2.assign_color();
-    //   if(ref2.is_black == 1){
-    //     if(right_flag == 1){
-    //       right_flag = 0;
-    //     }else{
-    //       right_flag = 1;
-    //     }
     //   }
-    //   printf("\nCOLOR --- ref2 => %d --- \n", ref2.is_black);
-    //   printf("SPEED --- m1 => %d --- m2 => %d\n", m1.speed, m2.speed);
+    //   adjust_speed(r_motar, l_motar);
+    // }else if(r_ref.is_black == false && l_ref.is_black == true){
+    //   float change_rate = 0.01f;
+    //   while(r_ref.is_black == false){
+    //     change_rate += change_rate;
+    //     rotate(l_motar, r_motar, change_rate);
+    //     r_ref.assign_color(ref1_value);
+    //     printf("--- Check Color --- Right Senser => %d --- Left Senser => %d ---\n", r_ref.is_black, l_ref.is_black);
+    //     printf("value ----- Ritght => %f --- Left => %f --- \n", ref1_value.read(), ref2_value.read());
+
+    //   }
+    //   adjust_speed(r_motar, l_motar);
+    // }else{
+    //   PID(r_motar, l_motar);
     // }
 
-    // while(right_flag == 1){
-    //   m2.speed_down(1);
-    //   m1.speed_up(1);
-    //   m1.speed = check_speed(m1);
-    //   m2.speed = check_speed(m2);
+    // 回転数の計測の処理
 
-    //   m1_enable.write(duty[m1.speed]);
-    //   m2_enable.write(duty[m2.speed]);
-
-	  //   ref2.value = ref2_value.read();
-    //   ref2.assign_color();
-    //   if(ref2.is_black == 1){
-    //     if(right_flag == 1){
-    //       right_flag = 0;
-    //     }else{
-    //       right_flag = 1;
-    //     }
-    //   }
-    //   printf("\nCOLOR --- ref2 => %d --- \n", ref2.is_black);
-    //   printf("SPEED --- m1 => %d --- m2 => %d\n", m1.speed, m2.speed);
-    //   // m1_enable.write(duty[2]);
-    //   // m2_enable.write(duty[2]);
-    // }
+    ////////////////////  特定の距離を走行したら実行する処理
   }
 }
-
