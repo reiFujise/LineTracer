@@ -7,6 +7,7 @@ DigitalOut m2_phase(D4);
 PwmOut     enable(D9);
 
 int main(){ 
+  int count_now, count_pre = 0;
   m1_mode  = 0;
   m2_mode  = 0;
   m1_phase = 1;
@@ -21,6 +22,8 @@ int main(){
     enable.period(period);
     enable.write(duty);
     enable.write(duty);
+    count_now = Counter.read() - count_pre;
+		count_pre = Counter.read();
 
     ThisThread::sleep_for(200);
   }

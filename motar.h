@@ -12,12 +12,12 @@ class Motar{
   private:
 };
 
-void Motar::increase_duty(float increase_rate){
+inline void Motar::increase_duty(float increase_rate){
   this->duty_ratio += increase_rate;
-  if (this->duty_ratio > 0.7f) this->duty_ratio = 0.7f;
+  if (this->duty_ratio > 0.4f) this->duty_ratio = 0.4f;
 }
 
-void Motar::decrease_duty(float decrease_rate){
+inline void Motar::decrease_duty(float decrease_rate){
   this->duty_ratio -= decrease_rate;
-  if (this->duty_ratio < 0.3f) this->duty_ratio = 0.3f;
+  if (this->duty_ratio < 0.0f) this->duty_ratio = 0.0f;
 }

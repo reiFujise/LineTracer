@@ -6,8 +6,8 @@
   // インスタンス化
   DigitalOut r_motar_phase(D0);
   PwmOut     r_motar_enable(D1);
-  DigitalOut l_motar_phase(D6);
-  PwmOut     l_motar_enable(D5);
+  DigitalOut l_motar_phase(D5);
+  PwmOut     l_motar_enable(D6);
   AnalogIn   ref1_value(A1); 
   AnalogIn   ref2_value(A2); 
   Counter    r_counter(D9);
@@ -58,8 +58,8 @@ int main(){
   l_motar_enable.period(l_motar.period);
 
   while(1){
-    r_motar_enable.write(r_motar.duty_ratio);
-    // l_motar_enable.write(l_motar.duty_ratio);
+    // r_motar_enable.write(r_motar.duty_ratio);
+    l_motar_enable.write(l_motar.duty_ratio);
     // // 色判定
     // r_ref.assign_color(ref1_value);
     // l_ref.assign_color(ref2_value);
@@ -100,5 +100,7 @@ int main(){
     // 回転数の計測の処理
 
     ////////////////////  特定の距離を走行したら実行する処理
+
+    wait_ms (1);
   }
 }
